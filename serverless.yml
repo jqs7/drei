@@ -1,0 +1,110 @@
+service: sls-go-bot
+
+frameworkVersion: ">=1.28.0 <2.0.0"
+
+provider:
+  name: aws
+  runtime: go1.x
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:PutItem"
+        - "dynamodb:Query"
+        - "dynamodb:DeleteItem"
+        - "dynamodb:GetItem"
+        - "dynamodb:UpdateItem"
+      Resource:
+        - Fn::GetAtt:
+            - usersTable
+            - Arn
+    - Effect: "Allow"
+      Action:
+        - "sqs:DeleteMessage"
+        - "sqs:ReceiveMessage"
+        - "sqs:SendMessage"
+      Resource:
+        - Fn::GetAtt:
+            - deleteMsg
+            - Arn
+    - Effect: "Allow"
+      Action:
+        - "sqs:DeleteMessage"
+        - "sqs:ReceiveMessage"
+        - "sqs:SendMessage"
+      Resource:
+        - Fn::GetAtt:
+            - captchaCountDown
+            - Arn
+  stage: ${opt:stage, 'dev'}
+  environment:
+    BOT_TOKEN: ${file(config.${self:provider.stage}.yml):BOT_TOKEN}
+    DELETE_MSG_QUEUE:
+      Ref: deleteMsg
+    CAPTCHA_COUNTDOWN_QUEUE:
+      Ref: captchaCountDown
+    USERS_TABLE_NAME: ${self:resources.Resources.usersTable.Properties.TableName}
+
+package:
+  exclude:
+    - .serverless
+    - cmd/**
+    - layer/**
+    - pkg/**
+    - \*.yml
+
+functions:
+  bot:
+    handler: bin/bot
+    layers:
+      - {Ref: StaticLambdaLayer}
+    events:
+      - http: ANY {proxy+}
+      - http: ANY /
+  deleteMsg:
+    handler: bin/delete-msg
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - deleteMsg
+              - Arn
+  captchaCountDown:
+    handler: bin/captcha-count-down
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - captchaCountDown
+              - Arn
+
+layers:
+  static:
+    path: layer
+
+resources:
+  Resources:
+    deleteMsg:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-delete-msg
+    captchaCountDown:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-captcha-count-down
+    usersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-black-list
+        AttributeDefinitions:
+          - AttributeName: chatID
+            AttributeType: N
+          - AttributeName: userID
+            AttributeType: N
+        KeySchema:
+          - AttributeName: chatID
+            KeyType: HASH
+          - AttributeName: userID
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
