@@ -64,7 +64,10 @@ func (b TGBotAPI) SendMsg(chatID int64, msg string) (int, error) {
 
 func (b TGBotAPI) SetWebhook(addr string) error {
 	_, err := b.bot.SetWebhook(tgbotapi.NewWebhook(addr))
-	return xerrors.Errorf("设置 webhook: %s 失败: %w", addr, err)
+	if err != nil {
+		return xerrors.Errorf("设置 webhook: %s 失败: %w", addr, err)
+	}
+	return nil
 }
 
 func (b TGBotAPI) DeleteMsg(chatID int64, msgID int) {
