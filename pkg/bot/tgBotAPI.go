@@ -91,13 +91,11 @@ func (b TGBotAPI) Kick(chatID int64, userID int, until time.Time) {
 }
 
 func (b TGBotAPI) IsAdmin(chatID int64, userID int) bool {
-	log.Println("get chat member", chatID, userID)
 	member, err := b.bot.GetChatMember(tgbotapi.ChatConfigWithUser{
 		ChatID: chatID,
 		UserID: userID,
 	})
 	if err != nil {
-		log.Println("admin query err: ", err)
 		return false
 	}
 	if !member.IsCreator() && !member.IsAdministrator() {
@@ -105,6 +103,20 @@ func (b TGBotAPI) IsAdmin(chatID int64, userID int) bool {
 		return false
 	}
 	return true
+}
+
+func (b TGBotAPI) HasLeft(chatID int64, userID int) bool {
+	member, err := b.bot.GetChatMember(tgbotapi.ChatConfigWithUser{
+		ChatID: chatID,
+		UserID: userID,
+	})
+	if err != nil {
+		return false
+	}
+	if member.HasLeft() || member.WasKicked() {
+		return true
+	}
+	return false
 }
 
 func (b TGBotAPI) UpdateCaption(chatID int64, msgID int, caption string, keyboard [][]model.KV) {

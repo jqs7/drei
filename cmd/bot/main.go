@@ -95,7 +95,11 @@ func main() {
 					if v.IsBot {
 						continue
 					}
-					idiomCaptureVerifier.OnNewMember(ctx, update.Message.Chat.ID, update.Message.Chat.Title, v.ID, v.FirstName, v.LastName)
+					idiomCaptureVerifier.OnNewMember(ctx,
+						update.Message.Chat.ID,
+						update.Message.Chat.Title,
+						v.ID, v.FirstName, v.LastName,
+					)
 				}
 			}
 
@@ -125,7 +129,10 @@ func main() {
 					if err != nil {
 						log.Fatalln(err)
 					}
-					_, _ = botAPI.SendImg(update.Message.Chat.ID, b, model.DonateMsg, model.DonatesKeyboard(model.CallbackTypeDonateWX))
+					_, _ = botAPI.SendImg(update.Message.Chat.ID,
+						b, model.DonateMsg,
+						model.DonatesKeyboard(model.CallbackTypeDonateWX),
+					)
 				}
 			}
 			return RespOK, nil

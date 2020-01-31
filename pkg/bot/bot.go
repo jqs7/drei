@@ -16,4 +16,5 @@ type Interface interface {
 	AnswerCallback(callbackID, text string)
 	Kick(chatID int64, userID int, until time.Time)
 	IsAdmin(chatID int64, userID int) bool
+	HasLeft(chatID int64, userID int) bool
 }

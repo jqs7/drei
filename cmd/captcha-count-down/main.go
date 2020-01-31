@@ -52,9 +52,15 @@ func main() {
 				log.Println(err)
 				continue
 			}
+			if botAPI.HasLeft(msg.ChatID, msg.UserID) {
+				botAPI.DeleteMsg(msg.ChatID, item.MsgID)
+				blacklist.DeleteItem(ctx, msg.ChatID, msg.UserID)
+				continue
+			}
 			if item.ExpireAt.Before(time.Now()) {
 				botAPI.DeleteMsg(msg.ChatID, item.MsgID)
 				botAPI.Kick(msg.ChatID, msg.UserID, time.Now().Add(time.Minute))
+				blacklist.DeleteItem(ctx, msg.ChatID, msg.UserID)
 				continue
 			}
 			botAPI.UpdateCaption(msg.ChatID, item.MsgID,
