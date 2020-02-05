@@ -78,6 +78,7 @@ func TestIdiomCaptcha(t *testing.T) {
 		mock := userEnterGroup(t, ctrl)
 		mock.bot.EXPECT().SendMsg(int64(1), gomock.Any())
 		mock.bot.EXPECT().DeleteMsg(int64(1), 2).Times(1)
+		mock.bot.EXPECT().DeleteMsg(int64(1), 3).Times(1)
 		mock.blacklist.EXPECT().GetItem(ctx, int64(1), 1).Return(&model.Blacklist{
 			ChatID: int64(1),
 			UserID: 1,
@@ -85,7 +86,7 @@ func TestIdiomCaptcha(t *testing.T) {
 		}, nil).Times(1)
 		mock.blacklist.EXPECT().DeleteItem(ctx, int64(1), 1).Times(1)
 		mock.queue.EXPECT().SendMsg(ctx, delMsgQueue, gomock.Any(), int64(10)).Times(1)
-		mock.verifier.Verify(ctx, int64(1), 1, 2, "阿鼻地狱")
+		mock.verifier.Verify(ctx, int64(1), 1, 3, "阿鼻地狱")
 	})
 
 	t.Run("用户进群后退群", func(t *testing.T) {

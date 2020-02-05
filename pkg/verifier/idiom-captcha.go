@@ -49,6 +49,7 @@ func (ic IdiomCaptcha) Verify(ctx context.Context, chatID int64, userID, msgID i
 	}
 	ic.bot.DeleteMsg(chatID, msgID)
 	if ic.idioms[blacklist.Index].Word == msg {
+		ic.bot.DeleteMsg(blacklist.ChatID, blacklist.MsgID)
 		ic.verifyOK(ctx, *blacklist)
 		return
 	}
