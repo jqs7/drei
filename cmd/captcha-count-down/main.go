@@ -67,8 +67,12 @@ func main() {
 				fmt.Sprintf(item.UserLink+" "+item.MsgTemplate, time.Until(item.ExpireAt)/time.Second),
 				verifier.InlineKeyboard,
 			)
+			var delay int64 = 5
+			if secToExpire := int64(time.Until(item.ExpireAt) / time.Second); secToExpire < delay {
+				delay = secToExpire
+			}
 			_, err = svc.SendMessageWithContext(ctx, &sqs.SendMessageInput{
-				DelaySeconds: aws.Int64(5),
+				DelaySeconds: &delay,
 				MessageBody:  aws.String(v.Body),
 				QueueUrl:     queueName,
 			})
@@ -76,7 +80,6 @@ func main() {
 				log.Println("send count down msg failed: ", err)
 			}
 		}
-		log.Printf("%+v", req)
 		return nil
 	})
 }

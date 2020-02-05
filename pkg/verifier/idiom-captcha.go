@@ -56,7 +56,6 @@ func (ic IdiomCaptcha) Verify(ctx context.Context, chatID int64, userID, msgID i
 
 func (ic IdiomCaptcha) verifyOK(ctx context.Context, blacklist model.Blacklist) {
 	ic.blacklist.DeleteItem(ctx, blacklist.ChatID, blacklist.UserID)
-	ic.bot.DeleteMsg(blacklist.ChatID, blacklist.MsgID)
 	msgID, err := ic.bot.SendMsg(blacklist.ChatID, blacklist.UserLink+" 恭喜，你已验证通过")
 	if err != nil {
 		return
@@ -210,6 +209,7 @@ func (ic IdiomCaptcha) OnCallbackQuery(ctx context.Context, chatID int64, msgID,
 		if err != nil {
 			return
 		}
+		ic.bot.DeleteMsg(chatID, msgID)
 		ic.verifyOK(ctx, *blacklist)
 	}
 }

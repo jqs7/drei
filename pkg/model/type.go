@@ -24,13 +24,8 @@ type MsgToRepeat struct {
 }
 
 type Idiom struct {
-	ID           int64
-	Derivation   string
-	Example      string
-	Explanation  string
-	Pinyin       string
-	Word         string
-	Abbreviation string
+	ID   int64
+	Word string
 }
 
 type Blacklist struct {

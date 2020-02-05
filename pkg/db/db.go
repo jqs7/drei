@@ -1,3 +1,4 @@
+//go:generate go run github.com/golang/mock/mockgen -source=db.go -package=db -destination=mock.go IBlacklist
 package db
 
 import (

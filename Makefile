@@ -3,14 +3,17 @@ all: clean deploy
 
 build: build-bot build-delete-msg build-captcha-count-down
 
-build-bot:
+build-bot: gen
 	env GOOS=linux go build -ldflags="-s -w" -o bin/bot github.com/jqs7/drei/cmd/bot
 
-build-delete-msg:
+build-delete-msg: gen
 	env GOOS=linux go build -ldflags="-s -w" -o bin/delete-msg github.com/jqs7/drei/cmd/delete-msg
 
-build-captcha-count-down:
+build-captcha-count-down: gen
 	env GOOS=linux go build -ldflags="-s -w" -o bin/captcha-count-down github.com/jqs7/drei/cmd/captcha-count-down
+
+gen:
+	go generate ./...
 
 clean:
 	rm -rf ./bin ./vendor Gopkg.lock

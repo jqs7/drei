@@ -1,3 +1,4 @@
+//go:generate go run github.com/golang/mock/mockgen -source=bot.go -package=bot -destination=mock.go Interface
 package bot
 
 import (
