@@ -1,4 +1,7 @@
 .PHONY: build clean deploy bot
+
+STAGE := dev
+
 all: clean deploy
 
 build: build-bot build-delete-msg build-captcha-count-down
@@ -18,18 +21,15 @@ gen:
 clean:
 	rm -rf ./bin ./vendor Gopkg.lock
 
-deploy-prod: clean build
-	sls deploy --stage prod
-
 deploy: clean build
-	sls deploy --verbose
+	sls deploy --verbose --stage ${STAGE}
 
 bot: clean build-bot
-	sls deploy -f bot --verbose
+	sls deploy -f bot --verbose ${STAGE}
 
 delete-msg: clean build-delete-msg
-	sls deploy -f deleteMsg
+	sls deploy -f deleteMsg --stage ${STAGE}
 
 captcha-count-down: clean build-captcha-count-down
-	sls deploy -f captchaCountDown
+	sls deploy -f captchaCountDown --stage ${STAGE}
 

@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/jqs7/drei/pkg/bot"
+	"github.com/jqs7/drei/pkg/captcha"
 	"github.com/jqs7/drei/pkg/db"
 	"github.com/jqs7/drei/pkg/model"
 	"github.com/jqs7/drei/pkg/queue"
@@ -38,9 +39,13 @@ func main() {
 		log.Fatalln("init aws session: ", err)
 	}
 
-	idiomCaptureVerifier, err := verifier.NewIdiomCaptcha(botAPI, queue.NewSQS(sess),
-		db.NewBlacklist(sess, os.Getenv("USERS_TABLE_NAME")),
-		"/opt/idiom.json", "/opt/fonts",
+	idiomCaptcha, err := captcha.NewRandIdiomCaptcha("/opt/idiom.json", "/opt/fonts")
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+
+	idiomVerifier, err := verifier.NewIdiomVerifier(botAPI, queue.NewSQS(sess),
+		db.NewBlacklist(sess, os.Getenv("USERS_TABLE_NAME")), idiomCaptcha,
 	)
 	if err != nil {
 		log.Fatalf("%+v", err)
@@ -57,7 +62,7 @@ func main() {
 			if update.CallbackQuery != nil {
 				switch update.CallbackQuery.Message.Chat.Type {
 				case "group", "supergroup":
-					idiomCaptureVerifier.OnCallbackQuery(ctx,
+					idiomVerifier.OnCallbackQuery(ctx,
 						update.CallbackQuery.Message.Chat.ID,
 						update.CallbackQuery.Message.MessageID,
 						update.CallbackQuery.From.ID,
@@ -95,7 +100,7 @@ func main() {
 					if v.IsBot {
 						continue
 					}
-					idiomCaptureVerifier.OnNewMember(ctx,
+					idiomVerifier.OnNewMember(ctx,
 						update.Message.Chat.ID,
 						update.Message.Chat.Title,
 						v.ID, v.FirstName, v.LastName,
@@ -105,12 +110,12 @@ func main() {
 
 			if update.Message.LeftChatMember != nil {
 				botAPI.DeleteMsg(update.Message.Chat.ID, update.Message.MessageID)
-				idiomCaptureVerifier.OnLeftMember(ctx, update.Message.Chat.ID, update.Message.LeftChatMember.ID)
+				idiomVerifier.OnLeftMember(ctx, update.Message.Chat.ID, update.Message.LeftChatMember.ID)
 			}
 
 			switch update.Message.Chat.Type {
 			case "group", "supergroup":
-				idiomCaptureVerifier.Verify(ctx,
+				idiomVerifier.Verify(ctx,
 					update.Message.Chat.ID,
 					update.Message.From.ID,
 					update.Message.MessageID,

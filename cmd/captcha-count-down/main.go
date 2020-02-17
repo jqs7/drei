@@ -67,7 +67,7 @@ func main() {
 				fmt.Sprintf(item.UserLink+" "+item.MsgTemplate, time.Until(item.ExpireAt)/time.Second),
 				verifier.InlineKeyboard,
 			)
-			var delay int64 = 5
+			var delay int64 = model.CaptchaRefreshSecond
 			if secToExpire := int64(time.Until(item.ExpireAt) / time.Second); secToExpire < delay {
 				delay = secToExpire
 			}

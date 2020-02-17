@@ -37,3 +37,8 @@ type Blacklist struct {
 	UserLink    string
 	MsgTemplate string
 }
+
+type Answer struct {
+	Number int
+	String string
+}

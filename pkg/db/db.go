@@ -1,4 +1,3 @@
-//go:generate go run github.com/golang/mock/mockgen -source=db.go -package=db -destination=mock.go IBlacklist
 package db
 
 import (
@@ -10,6 +9,7 @@ import (
 
 var ErrNotFound = xerrors.New("Record Not Found")
 
+//go:generate go run github.com/golang/mock/mockgen -source=db.go -package=db -destination=mock.go IBlacklist
 type IBlacklist interface {
 	GetItem(ctx context.Context, chatID int64, userID int) (*model.Blacklist, error)
 	UpdateIdx(ctx context.Context, chatID int64, userID, idx int)

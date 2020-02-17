@@ -28,6 +28,10 @@ const (
 2. 支付服务器等设施费用`
 )
 
+const (
+	CaptchaRefreshSecond = 15
+)
+
 type DonateKV struct {
 	Key string
 	URL string

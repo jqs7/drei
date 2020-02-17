@@ -8,6 +8,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/jqs7/drei/pkg/bot"
+	"github.com/jqs7/drei/pkg/captcha"
 	"github.com/jqs7/drei/pkg/db"
 	"github.com/jqs7/drei/pkg/model"
 	"github.com/jqs7/drei/pkg/queue"
@@ -20,14 +21,13 @@ func TestIdiomCaptcha(t *testing.T) {
 	countdownQueue := "CountDown"
 	_ = os.Setenv("DELETE_MSG_QUEUE", delMsgQueue)
 	_ = os.Setenv("CAPTCHA_COUNTDOWN_QUEUE", countdownQueue)
-	idiomPath := "../../layer/idiom.json"
-	fontsPath := "../../layer/fonts"
 
 	type mockRst struct {
-		bot       *bot.MockInterface
-		blacklist *db.MockIBlacklist
-		queue     *queue.MockInterface
-		verifier  Interface
+		bot         *bot.MockInterface
+		blacklist   *db.MockIBlacklist
+		queue       *queue.MockInterface
+		imgVerifier *captcha.MockInterface
+		verifier    Interface
 	}
 
 	userEnterGroup := func(t *testing.T, ctrl *gomock.Controller) mockRst {
@@ -40,14 +40,18 @@ func TestIdiomCaptcha(t *testing.T) {
 		mockQueue := queue.NewMockInterface(ctrl)
 		mockQueue.EXPECT().SendMsg(ctx, countdownQueue, gomock.Any(), int64(5)).Times(1)
 
-		verifier, err := NewIdiomCaptcha(mockBot, mockQueue, mockBlacklist, idiomPath, fontsPath)
+		imgVerifier := captcha.NewMockInterface(ctrl)
+		imgVerifier.EXPECT().GenRandImg().Times(1)
+
+		verifier, err := NewIdiomVerifier(mockBot, mockQueue, mockBlacklist, imgVerifier)
 		assert.NoError(t, err)
 		verifier.OnNewMember(ctx, int64(1), "ChatName", 1, "FirstName", "LastName")
 		return mockRst{
-			bot:       mockBot,
-			blacklist: mockBlacklist,
-			queue:     mockQueue,
-			verifier:  verifier,
+			bot:         mockBot,
+			blacklist:   mockBlacklist,
+			queue:       mockQueue,
+			verifier:    verifier,
+			imgVerifier: imgVerifier,
 		}
 	}
 
@@ -68,6 +72,7 @@ func TestIdiomCaptcha(t *testing.T) {
 			UserID: 1,
 			MsgID:  2,
 		}, nil).Times(1)
+		mock.imgVerifier.EXPECT().VerifyAnswer(model.Answer{Number: 0}, model.Answer{String: "WTF"}).Return(false)
 		mock.verifier.Verify(ctx, int64(1), 1, 2, "WTF")
 	})
 
@@ -86,7 +91,8 @@ func TestIdiomCaptcha(t *testing.T) {
 		}, nil).Times(1)
 		mock.blacklist.EXPECT().DeleteItem(ctx, int64(1), 1).Times(1)
 		mock.queue.EXPECT().SendMsg(ctx, delMsgQueue, gomock.Any(), int64(10)).Times(1)
-		mock.verifier.Verify(ctx, int64(1), 1, 3, "阿鼻地狱")
+		mock.imgVerifier.EXPECT().VerifyAnswer(model.Answer{Number: 0}, model.Answer{String: "OK"}).Return(true)
+		mock.verifier.Verify(ctx, int64(1), 1, 3, "OK")
 	})
 
 	t.Run("用户进群后退群", func(t *testing.T) {
@@ -181,6 +187,7 @@ func TestIdiomCaptcha(t *testing.T) {
 			ExpireAt: time.Now().Add(time.Second),
 		}, nil).Times(1)
 		mock.blacklist.EXPECT().UpdateIdx(ctx, int64(1), 1, gomock.Any()).Times(1)
+		mock.imgVerifier.EXPECT().GenRandImg().Times(1)
 		mock.verifier.OnCallbackQuery(ctx, int64(1), 2, 1, "callbackID", model.CallbackTypeRefresh)
 	})
 }
