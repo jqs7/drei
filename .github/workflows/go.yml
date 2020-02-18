@@ -1,5 +1,8 @@
 name: Go
-on: [push]
+on:
+  push:
+    branches: 
+      - master
 jobs:
 
   build:
@@ -17,15 +20,23 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Get dependencies
-      run: |
-        go get -v -t -d ./...
-        if [ -f Gopkg.toml ]; then
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-            dep ensure
-        fi
+      run: go mod download
 
     - name: Build
       run: mkdir bin && go build -v -o bin ./cmd/...
     
     - name: Test
       run: go test -v  ./...
+
+    - name: Serverless
+      uses: serverless/github-action@v1.53.0
+    
+    - name: Setup AWS
+      run: sls config credentials --provider aws --key ${{secrets.AWS_KEY}} --secret ${{secrets.AWS_SECRET}}
+    
+    - name: Setup Config
+      run: |
+        echo "BOT_TOKEN: ${{secrets.BOT_TOKEN}}" > config.dev.yml
+      
+    - name: Deploy
+      run: sls deploy
