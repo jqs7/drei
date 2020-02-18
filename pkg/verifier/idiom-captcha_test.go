@@ -38,7 +38,7 @@ func TestIdiomCaptcha(t *testing.T) {
 		mockBlacklist.EXPECT().CreateItem(ctx, gomock.Any()).Times(1)
 
 		mockQueue := queue.NewMockInterface(ctrl)
-		mockQueue.EXPECT().SendMsg(ctx, countdownQueue, gomock.Any(), int64(5)).Times(1)
+		mockQueue.EXPECT().SendMsg(ctx, countdownQueue, gomock.Any(), int64(model.CaptchaRefreshSecond)).Times(1)
 
 		imgVerifier := captcha.NewMockInterface(ctrl)
 		imgVerifier.EXPECT().GenRandImg().Times(1)
