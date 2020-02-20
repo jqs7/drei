@@ -40,8 +40,8 @@ func main() {
 				ReceiptHandle: &v.ReceiptHandle,
 			}); err != nil {
 				log.Println(err)
+				return err
 			}
-			botAPI.DeleteMsg(msg.ChatID, msg.MsgID)
 		}
 		log.Printf("%+v", req)
 		return nil

@@ -87,10 +87,12 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:service}-${self:provider.stage}-delete-msg
+        VisibilityTimeout: 10
     captchaCountDown:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: ${self:service}-${self:provider.stage}-captcha-count-down
+        VisibilityTimeout: 10
     usersTable:
       Type: AWS::DynamoDB::Table
       Properties:
