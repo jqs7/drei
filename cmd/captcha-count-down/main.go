@@ -40,27 +40,30 @@ func main() {
 				log.Println(err)
 				continue
 			}
-			if _, err := svc.DeleteMessageWithContext(ctx, &sqs.DeleteMessageInput{
-				QueueUrl:      queueName,
-				ReceiptHandle: &v.ReceiptHandle,
-			}); err != nil {
-				log.Println(err)
-				continue
-			}
 			item, err := blacklist.GetItem(ctx, msg.ChatID, msg.UserID)
 			if err != nil {
 				log.Println(err)
 				continue
 			}
+			delMsgFromQueue := func() {
+				if _, err := svc.DeleteMessageWithContext(ctx, &sqs.DeleteMessageInput{
+					QueueUrl:      queueName,
+					ReceiptHandle: &v.ReceiptHandle,
+				}); err != nil {
+					log.Println(err)
+				}
+			}
 			if botAPI.HasLeft(msg.ChatID, msg.UserID) {
 				botAPI.DeleteMsg(msg.ChatID, item.MsgID)
 				blacklist.DeleteItem(ctx, msg.ChatID, msg.UserID)
+				delMsgFromQueue()
 				continue
 			}
 			if item.ExpireAt.Before(time.Now()) {
 				botAPI.DeleteMsg(msg.ChatID, item.MsgID)
 				botAPI.Kick(msg.ChatID, msg.UserID, time.Now().Add(time.Minute))
 				blacklist.DeleteItem(ctx, msg.ChatID, msg.UserID)
+				delMsgFromQueue()
 				continue
 			}
 			botAPI.UpdateCaption(msg.ChatID, item.MsgID,
@@ -79,6 +82,7 @@ func main() {
 			if err != nil {
 				log.Println("send count down msg failed: ", err)
 			}
+			delMsgFromQueue()
 		}
 		return nil
 	})
