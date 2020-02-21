@@ -1,7 +1,7 @@
 name: Test
 on:
   push:
-    branches: 
+    branches:
       - master
 jobs:
   build:
@@ -22,14 +22,14 @@ jobs:
 
     - name: Build
       run: mkdir bin && go build -v -o bin ./cmd/...
-    
+
     - name: Test
       run: go test -v  ./...
-      
+
     - name: Setup Config
       run: |
         echo "BOT_TOKEN: ${{secrets.TEST_BOT_TOKEN}}" > config.dev.yml
-      
+
     - name: Deploy
       uses: serverless/github-action@v1.53.0
       with:
@@ -37,4 +37,3 @@ jobs:
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET }}
-     
