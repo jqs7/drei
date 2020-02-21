@@ -1,4 +1,4 @@
-![Go](https://github.com/jqs7/drei/workflows/Go/badge.svg)
+![test](https://github.com/jqs7/drei/workflows/Test/badge.svg)
 
 serverless version of [zwei](https://github.com/jqs7/zwei)
 

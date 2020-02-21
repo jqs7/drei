@@ -1,0 +1,52 @@
+name: Test
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Get dependencies
+        run: go mod download
+
+      - name: Build
+        run: mkdir bin && go build -v -o bin ./cmd/...
+
+      - name: Test
+        run: go test -v  ./...
+
+      - name: Setup Zwei Config
+        run: |
+          echo "BOT_TOKEN: ${{secrets.ZWEI_BOT_TOKEN}}" > config.zwei.yml
+
+      - name: Deploy Zwei
+        uses: serverless/github-action@v1.53.0
+        with:
+          args: deploy --stage zwei --verbose
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET }}
+
+      - name: Setup Drei Config
+        run: |
+          echo "BOT_TOKEN: ${{secrets.PROD_BOT_TOKEN}}" > config.prod.yml
+
+      - name: Deploy Drei
+        uses: serverless/github-action@v1.53.0
+        with:
+          args: deploy --stage prod --verbose
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET }}
+
