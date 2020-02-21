@@ -42,7 +42,7 @@ func main() {
 			}
 			item, err := blacklist.GetItem(ctx, msg.ChatID, msg.UserID)
 			if err != nil {
-				if err != db.ErrNotFound {
+				if err == db.ErrNotFound {
 					return nil
 				}
 				log.Println(err)
