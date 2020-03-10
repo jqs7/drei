@@ -21,3 +21,5 @@ vendor
 *.out
 
 config.*.yml
+
+.idea/**

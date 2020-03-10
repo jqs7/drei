@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -56,6 +57,10 @@ func main() {
 		case "/":
 			update := &tgbotapi.Update{}
 			if err := json.Unmarshal([]byte(req.Body), update); err != nil {
+				return RespOK, nil
+			}
+
+			if time.Since(update.Message.Time()) > time.Hour {
 				return RespOK, nil
 			}
 
