@@ -60,10 +60,6 @@ func main() {
 				return RespOK, nil
 			}
 
-			if time.Since(update.Message.Time()) > time.Hour {
-				return RespOK, nil
-			}
-
 			if update.CallbackQuery != nil {
 				switch update.CallbackQuery.Message.Chat.Type {
 				case "group", "supergroup":
@@ -96,6 +92,10 @@ func main() {
 			}
 
 			if update.Message == nil {
+				return RespOK, nil
+			}
+
+			if time.Since(update.Message.Time()) > time.Hour {
 				return RespOK, nil
 			}
 
