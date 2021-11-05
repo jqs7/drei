@@ -53,7 +53,11 @@ func main() {
 				blacklist.DeleteItem(ctx, msg.ChatID, msg.UserID)
 				continue
 			}
-			if item.ExpireAt.Before(time.Now()) {
+			var delay int64 = model.CaptchaRefreshSecond
+			if secToExpire := int64(time.Until(item.ExpireAt) / time.Second); secToExpire < delay {
+				delay = secToExpire
+			}
+			if item.ExpireAt.Before(time.Now()) || delay <= 0 {
 				botAPI.DeleteMsg(msg.ChatID, item.MsgID)
 				botAPI.Kick(msg.ChatID, msg.UserID, time.Now().Add(time.Minute))
 				blacklist.DeleteItem(ctx, msg.ChatID, msg.UserID)
@@ -63,10 +67,6 @@ func main() {
 				fmt.Sprintf(item.UserLink+" "+item.MsgTemplate, time.Until(item.ExpireAt)/time.Second),
 				verifier.InlineKeyboard,
 			)
-			var delay int64 = model.CaptchaRefreshSecond
-			if secToExpire := int64(time.Until(item.ExpireAt) / time.Second); secToExpire < delay {
-				delay = secToExpire
-			}
 			_, err = svc.SendMessageWithContext(ctx, &sqs.SendMessageInput{
 				DelaySeconds: &delay,
 				MessageBody:  aws.String(v.Body),
